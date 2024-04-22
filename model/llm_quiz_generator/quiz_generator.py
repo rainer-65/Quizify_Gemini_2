@@ -138,7 +138,7 @@ class QuizGenerator:
                     retry += 1
                 # if used all attempts and still get validation error, generate whole quiz from start
                 if retry >= 3:
-                    print('Validation Error can not be resolved, Regenrating quiz...')
+                    print('Validation Error can not be resolved, Regenerating quiz...')
                     self.generate_quiz()
 
         return self.question_bank

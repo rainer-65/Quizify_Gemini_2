@@ -1,4 +1,7 @@
 import streamlit as st
+
+import os
+
 from model import (
     DocumentProcessor,
     EmbeddingClient,
@@ -7,11 +10,13 @@ from model import (
     QuizManager
 )
 
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "gemini-quiz.json"
+
 if __name__ == "__main__":
 
     embed_config = {
         "model_name": "textembedding-gecko@003",
-        "project": "gold-hold-418319",
+        "project": "gemini-quiz",
         "location": "us-central1"
     }
 
@@ -48,8 +53,7 @@ if __name__ == "__main__":
                     chroma_creator.create_chroma_collection()
 
                     if len(processor.pages) > 0:
-                        st.write(f"Generating {
-                                 questions} questions for topic: {topic_input}")
+                        st.write(f"Generating {questions} questions for topic: {topic_input}")
 
                     # Initialize a QuizGenerator class using the topic, number of questrions, and the chroma collection
                     generator = QuizGenerator(

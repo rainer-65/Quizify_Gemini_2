@@ -92,5 +92,5 @@ class ChromaCollectionCreator:
             st.error("Chroma Collection has not been created!", icon="🚨")
         
     def as_retriever(self):
-        '''Enable retrive for VactorData'''
+        '''Enable retrieve for VectorData'''
         return self.db.as_retriever()
