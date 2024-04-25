@@ -1,7 +1,7 @@
-from langchain_google_vertexai import VertexAI
-from langchain_core.prompts import PromptTemplate
-import streamlit as st
 import json
+
+from langchain_core.prompts import PromptTemplate
+from langchain_google_vertexai import VertexAI
 
 
 class QuizGenerator:
@@ -128,7 +128,7 @@ class QuizGenerator:
                 self.question_bank.append(question)
             else:
                 print("Duplicate or invalid question detected.")
-                retry = 0 # Initializing attempt counter
+                retry = 0  # Initializing attempt counter
                 while retry < 3:
                     question = json.loads(
                         self.generate_question_with_vectorstore())
