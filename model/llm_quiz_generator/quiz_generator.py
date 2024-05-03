@@ -113,6 +113,10 @@ class QuizGenerator:
         for _ in range(self.num_questions):
             # generate single question
             question_str = self.generate_question_with_vectorstore()
+            # Cleansing the question
+            for element in range(0, len(question_str)):
+                question_str = question_str.replace("`", "")
+            question_str = question_str.replace("json", "")
 
             try:
                 # Convert the JSON String to a dictionary
@@ -130,17 +134,15 @@ class QuizGenerator:
                 print("Duplicate or invalid question detected.")
                 retry = 0  # Initializing attempt counter
                 while retry < 3:
-                    question = json.loads(
-                        self.generate_question_with_vectorstore())
-                    if self.validate_question(question):
-                        self.question_bank.append(question)
-                        break  # validated in given attempt
-                    retry += 1
+                    question = json.loads(self.generate_question_with_vectorstore())
+                if self.validate_question(question):
+                    self.question_bank.append(question)
+                    break  # validated in given attempt
+                retry += 1
                 # if used all attempts and still get validation error, generate whole quiz from start
                 if retry >= 3:
                     print('Validation Error can not be resolved, Regenerating quiz...')
                     self.generate_quiz()
-
         return self.question_bank
 
     def validate_question(self, question: dict) -> bool:
