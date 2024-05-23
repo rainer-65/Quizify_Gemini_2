@@ -1,4 +1,5 @@
 import json
+import re
 
 from langchain_core.prompts import PromptTemplate
 from langchain_google_vertexai import VertexAI
@@ -114,8 +115,14 @@ class QuizGenerator:
             # generate single question
             question_str = self.generate_question_with_vectorstore()
             # Cleansing the question
+            # Removing html tags from a string
+            html_pattern = re.compile('<.*?>')
+            question_str = re.sub(html_pattern, '', question_str)
+            # Deleting unnecessary characters
             for element in range(0, len(question_str)):
+                # delete single quotes
                 question_str = question_str.replace("`", "")
+            # delete json keyword
             question_str = question_str.replace("json", "")
 
             try:
@@ -131,14 +138,14 @@ class QuizGenerator:
                 # Add the valid and unique question to the bank
                 self.question_bank.append(question)
             else:
-                print("Duplicate or invalid question detected.")
+                print("Duplicate or invalid question detected")
                 retry = 0  # Initializing attempt counter
                 while retry < 3:
                     question = json.loads(self.generate_question_with_vectorstore())
-                if self.validate_question(question):
-                    self.question_bank.append(question)
-                    break  # validated in given attempt
-                retry += 1
+                    if self.validate_question(question):
+                        self.question_bank.append(question)
+                        break  # validated in given attempt
+                    retry += 1
                 # if used all attempts and still get validation error, generate whole quiz from start
                 if retry >= 3:
                     print('Validation Error can not be resolved, Regenerating quiz...')

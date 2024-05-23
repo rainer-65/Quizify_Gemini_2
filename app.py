@@ -1,13 +1,13 @@
-import streamlit as st
-
 import os
+
+import streamlit as st
 
 from model import (
     DocumentProcessor,
     EmbeddingClient,
     ChromaCollectionCreator,
     QuizGenerator,
-    QuizManager
+    QuizManager,
 )
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "gemini-quiz.json"
@@ -32,7 +32,7 @@ if __name__ == "__main__":
             # Create a new st.form flow control for Data Ingestion
             with st.form("Load Data to Chroma"):
                 st.write(
-                    "Select PDFs for Ingestion, the topic for the quiz, and click Generate!")
+                    "Select PDFs for the domain you need, the topic for the quiz, and click Generate!")
 
                 processor = DocumentProcessor()
                 processor.ingest_documents()
@@ -47,15 +47,15 @@ if __name__ == "__main__":
                 questions = st.slider("Number of Questions",
                                       min_value=1, max_value=10, value=1)
 
-                submitted = st.form_submit_button("Submit")
+                submitted = st.form_submit_button("Generate question list")
 
                 if submitted:
                     chroma_creator.create_chroma_collection()
 
                     if len(processor.pages) > 0:
-                        st.write(f"Generating {questions} questions for topic: {topic_input}")
+                        st.write(f"Generating {questions} questions for the topic: {topic_input}")
 
-                    # Initialize a QuizGenerator class using the topic, number of questrions, and the chroma collection
+                    # Initialize a QuizGenerator class using the topic, number of questions, and the chroma collection
                     generator = QuizGenerator(
                         topic=topic_input, num_questions=questions, vectorstore=chroma_creator)
                     question_bank = generator.generate_quiz()
@@ -63,6 +63,8 @@ if __name__ == "__main__":
                     st.session_state['question_bank'] = [
                         question for question in question_bank]
                     # Set a display_quiz flag in st.session_state to True
+                    st.success(str(len(st.session_state['question_bank'])) + " questions successfully generated!",
+                               icon="✅")
                     st.session_state['display_quiz'] = True
                     # Set the question_index to 0 in st.session_state
                     st.session_state['question_index'] = 0
@@ -71,7 +73,7 @@ if __name__ == "__main__":
 
         st.empty()
         with st.container():
-            st.header("Generated Quiz Question: ")
+            st.header("Generated Quiz Questions")
             quiz_manager = QuizManager(st.session_state['question_bank'])
 
             # Format the question and display it
@@ -79,7 +81,9 @@ if __name__ == "__main__":
                 # Set index_question using the Quiz Manager method get_question_at_index passing the st.session_state["question_index"]
                 index_question = quiz_manager.get_question_at_index(
                     st.session_state['question_index'])
-
+                # Counter for correct answers
+                if 'correct_answers' not in st.session_state:
+                    st.session_state['correct_answers'] = 0
                 # Unpack choices for radio button
                 choices = []
                 for choice in index_question['choices']:
@@ -96,17 +100,25 @@ if __name__ == "__main__":
                     index=None
                 )
 
-                answer_choice = st.form_submit_button("Submit")
+                answer_choice = st.form_submit_button("Submit answer")
 
                 st.form_submit_button(
                     "Next Question", on_click=lambda: quiz_manager.next_question_index(direction=1))
-                st.form_submit_button(
-                    "Previous Question", on_click=lambda: quiz_manager.next_question_index(direction=-1))
 
                 if answer_choice and answer is not None:
                     correct_answer_key = index_question['answer']
                     if answer.startswith(correct_answer_key):
                         st.success("Correct!")
+                        st.session_state['correct_answers'] += 1
                     else:
                         st.error("Incorrect!")
                     st.write(f"Explanation: {index_question['explanation']}")
+
+                # End of test reached
+                if st.session_state['question_index'] + 1 == len(st.session_state['question_bank']) and answer:
+                    st.info("End of test reached ...", icon="ℹ️")
+                    # Generating statistics
+                    correct_percentage = st.session_state['correct_answers'] / len(st.session_state['question_bank']) * 100
+                    incorrect_percentage = 100 - correct_percentage
+                    st.info(f"Correct Answers: {correct_percentage:.2f}%", icon="ℹ️")
+                    st.info(f"Incorrect Answers: {incorrect_percentage:.2f}%", icon="ℹ️")
