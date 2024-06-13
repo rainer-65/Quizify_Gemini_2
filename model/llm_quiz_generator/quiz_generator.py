@@ -4,6 +4,8 @@ import re
 from langchain_core.prompts import PromptTemplate
 from langchain_google_vertexai import VertexAI
 
+import nltk
+nltk.download('punkt')
 
 class QuizGenerator:
     def __init__(self, topic=None, num_questions=1, vectorstore=None):
@@ -166,7 +168,6 @@ class QuizGenerator:
 
         Note: This method assumes `question` is a valid dictionary and `question_bank` has been properly initialized.
         """
-        import nltk
         is_unique = True
         # if question bank is empty no need to validate
         if not self.question_bank:
