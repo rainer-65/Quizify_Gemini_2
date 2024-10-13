@@ -142,7 +142,7 @@ if __name__ == "__main__":
                     display_statistics.generate_pie_chart(correct_percentage, incorrect_percentage)
                     # Reset for re-taking test
                     st.session_state['correct_answers'] = 0
-                    # Deleting Firebase DB
+                    # Deleting Firebase Database
                     # Setting parameters
                     batch_size = 500
                     if quiz_storage_firebase.delete_collection(firebase_coll, batch_size):
